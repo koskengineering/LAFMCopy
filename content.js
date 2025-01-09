@@ -1,4 +1,23 @@
 javascript: (function () {
+  function showNotification(message, isSuccess) {
+    const notification = document.createElement("div");
+    notification.textContent = message;
+    notification.style.position = "fixed";
+    notification.style.top = "10px";
+    notification.style.right = "10px";
+    notification.style.backgroundColor = isSuccess ? "green" : "red";
+    notification.style.color = "white";
+    notification.style.padding = "10px";
+    notification.style.borderRadius = "5px";
+    notification.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
+    notification.style.zIndex = "10000";
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
   /* テーブルからデータを取得する関数 */
   function extractTableData() {
     /* 商品IDと商品名のマッピング */
@@ -273,8 +292,10 @@ javascript: (function () {
     document.execCommand("copy");
     console.log("データをクリップボードにコピーしました");
     console.log("コピーされたデータ:", data);
+    showNotification("コピーに成功しました", true);
   } catch (err) {
     console.error("クリップボードへのコピーに失敗しました:", err);
+    showNotification("コピーに失敗しました", false);
   } finally {
     /* 一時的なテキストエリアを削除 */
     document.body.removeChild(textarea);
