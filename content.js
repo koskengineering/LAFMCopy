@@ -47,6 +47,7 @@ javascript: (function () {
     })();
 
     const store = "ファーマーズマーケット";
+    const url = window.location.href;
     const accountName =
       document.querySelector(".management_aside.farmer .name")?.innerText ||
       null;
@@ -71,7 +72,7 @@ javascript: (function () {
 
       /* 郵便番号と住所を結合 */
       const postalAndAddress = lines
-        .filter((line) => line.includes("〒") || line.includes("県"))
+        .filter((line) => line.includes("〒") || /[都道府県]/.test(line))
         .join(" ");
 
       if (!postalAndAddress) {
@@ -174,19 +175,19 @@ javascript: (function () {
       ).find((el) => el.textContent.includes("商品を発送しました"));
 
       if (!confirmationElement) {
-        return null;
+        return { courier: null, trackingNumber: null };
       }
 
       /* 最も近い.wrapper要素を見つける */
       const wrapper = confirmationElement.closest(".wrapper");
       if (!wrapper) {
-        return null;
+        return { courier: null, trackingNumber: null };
       }
 
       /* テキスト要素を見つける */
       const textElement = wrapper.querySelector(".text");
       if (!textElement) {
-        return null;
+        return { courier: null, trackingNumber: null };
       }
 
       /* 配送業者名を抽出（ヤマト便から"ヤマト"を抽出） */
@@ -206,43 +207,47 @@ javascript: (function () {
     })();
 
     const notesText = (() => {
-        /* 特記事項のh2要素を探す */
-        const notesSection = Array.from(document.querySelectorAll('.trade_item'))
-          .find(item => item.querySelector('h2')?.textContent.includes('特記事項'));
-      
-        if (!notesSection) {
-          return null;
-        }
-      
-        /* その中のtrade_textを取得 */
-        const specialNotes = notesSection.querySelector('.trade_text');
-        if (!specialNotes) {
-          return null;
-        }
-      
-        let notesText = specialNotes.textContent;
-      
-        /* 削除する文言のリスト */
-        const removeTexts = [
-          "■水揚げは天候に左右されるため、日時指定は困難です。",
-          "■着時間指定は対応可能です。例）午前中、16時以降など",
-        ];
-      
-        /* 指定の文言を削除 */
-        removeTexts.forEach((text) => {
-          notesText = notesText.replace(text, "");
-        });
-      
-        /* 余分な改行や空白を整理 */
-        notesText = notesText.trim();
-      
-        /* 結果を返す */
-        return notesText || null;  /* 空文字列の場合はnullを返す */
-      })();
+      /* 特記事項のh2要素を探す */
+      const notesSection = Array.from(
+        document.querySelectorAll(".trade_item")
+      ).find((item) =>
+        item.querySelector("h2")?.textContent.includes("特記事項")
+      );
+
+      if (!notesSection) {
+        return null;
+      }
+
+      /* その中のtrade_textを取得 */
+      const specialNotes = notesSection.querySelector(".trade_text");
+      if (!specialNotes) {
+        return null;
+      }
+
+      let notesText = specialNotes.textContent;
+
+      /* 削除する文言のリスト */
+      const removeTexts = [
+        "■水揚げは天候に左右されるため、日時指定は困難です。",
+        "■着時間指定は対応可能です。例）午前中、16時以降など",
+      ];
+
+      /* 指定の文言を削除 */
+      removeTexts.forEach((text) => {
+        notesText = notesText.replace(text, "");
+      });
+
+      /* 余分な改行や空白を整理 */
+      notesText = notesText.trim();
+
+      /* 結果を返す */
+      return notesText || null; /* 空文字列の場合はnullを返す */
+    })();
 
     /* 取得したすべての結果を返す */
     return {
       store,
+      url,
       accountName,
       postalAndAddress,
       name,
@@ -265,7 +270,7 @@ javascript: (function () {
   /* タブ区切りの文字列を作成 */
   const row = [
     data.store,
-    "" /* 注文リンク（空欄） */,
+    data.url,
     data.accountName,
     "" /* メールアドレス（空欄） */,
     data.phone,
